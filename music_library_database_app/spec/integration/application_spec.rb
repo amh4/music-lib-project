@@ -30,6 +30,7 @@ describe Application do
         response = get('/albums')
         albums.each do |record|
           expect(response.body).to include("Title: #{record.title}", "Release Year: #{record.release_year}")
+          expect(response.body).to include("<a href=\"/album/:id\">Go to the album page</a>")
         end
         expect(response.status).to eq(200)
       end
