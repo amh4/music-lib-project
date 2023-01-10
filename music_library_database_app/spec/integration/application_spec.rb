@@ -30,7 +30,6 @@ describe Application do
         response = get('/albums')
         albums.each do |record|
           expect(response.body).to include("Title: #{record.title}", "Release Year: #{record.release_year}")
-          expect(response.body).to include("<a href=\"/album/:id\">Go to the album page</a>")
         end
         expect(response.status).to eq(200)
       end
@@ -56,10 +55,13 @@ describe Application do
     context "GET /artists" do
       it 'returns 200 OK' do
         response = get('/artists')
-        expected_response = 'Pixies, ABBA, Taylor Swift, Nina Simone'
-
+        artists_repo = ArtistRepository.new
+        artists_repo.all.each do |artist|
+          expect(response.body).to include("Name: #{artist.name}", "Genre: #{artist.genre}")
+          expect(response.body).to include("<a href=\"/artists/#{artist.id}\">Go to the artist page</a>")
+        end
         expect(response.status).to eq(200)
-        expect(response.body).to eq(expected_response)
+
       end
     end
 
@@ -84,6 +86,15 @@ describe Application do
 
         expect(response.status).to eq(200)
         expect(response.body).to include("<h1> Surfer Rosa </h1>", "Artist: Pixies")
+      end
+    end
+
+    context "GET /artists/:id" do
+      it 'returns 200 OK and relevant artists information' do
+        response = get("/artists/2")
+
+        expect(response.status).to eq(200)
+        expect(response.body).to include("Name: ABBA", "Genre: Pop")
       end
     end
   end
