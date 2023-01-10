@@ -8,7 +8,7 @@ def reset_artists_table
 end
 
 describe ArtistRepository do
-  before(:each) do 
+  after(:each) do 
     reset_artists_table
   end
 

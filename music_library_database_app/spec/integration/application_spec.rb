@@ -10,24 +10,28 @@ describe Application do
   # class so our tests work.
   let(:app) { Application.new }
   
-  def reset_albums_table
-    seed_sql = File.read('spec/seeds/albums_seeds.sql')
+  def reset_tables
+    albums_seed_sql = File.read('spec/seeds/albums_seeds.sql')
+    artists_seed_sql = File.read('spec/seeds/artists_seeds.sql')
     connection = PG.connect({ host: '127.0.0.1', dbname: 'music_library_test' })
-    connection.exec(seed_sql)
+    connection.exec(albums_seed_sql)
+    connection.exec(artists_seed_sql)
   end
 
   describe Application do
     after(:each) do 
-      reset_albums_table
+      reset_tables
     end
 
     context 'GET /albums' do 
-      it 'should return the list of albums' do
+      it 'should return the list of albums each in its own div' do
+        album_repo = AlbumRepository.new
+        albums = album_repo.all
         response = get('/albums')
-        expected_response = 'Doolittle, Surfer Rosa, Waterloo, Super Trouper, Bossanova, Lover, Folklore, I Put a Spell on You, Baltimore, Here Comes the Sun, Fodder on My Wings, Ring Ring'
-
+        albums.each do |record|
+          expect(response.body).to include("Title: #{record.title}", "Release Year: #{record.release_year}")
+        end
         expect(response.status).to eq(200)
-        expect(response.body).to eq(expected_response)
       end
     end
 
@@ -51,7 +55,7 @@ describe Application do
     context "GET /artists" do
       it 'returns 200 OK' do
         response = get('/artists')
-        expected_response = 'Pixies, ABBA, Taylor Swift, Nina Simone, Kiasmos'
+        expected_response = 'Pixies, ABBA, Taylor Swift, Nina Simone'
 
         expect(response.status).to eq(200)
         expect(response.body).to eq(expected_response)
