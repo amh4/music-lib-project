@@ -10,65 +10,76 @@ describe Application do
   # class so our tests work.
   let(:app) { Application.new }
   
-
-  context 'GET /albums' do 
-    it 'should return the list of albums' do
-      response = get('/albums')
-      expected_response = 'Doolittle, Surfer Rosa, Waterloo, Super Trouper, Bossanova, Lover, Folklore, I Put a Spell on You, Baltimore, Here Comes the Sun, Fodder on My Wings, Ring Ring'
-
-      expect(response.status).to eq(200)
-      expect(response.body).to eq(expected_response)
-    end
+  def reset_albums_table
+    seed_sql = File.read('spec/seeds/albums_seeds.sql')
+    connection = PG.connect({ host: '127.0.0.1', dbname: 'music_library_test' })
+    connection.exec(seed_sql)
   end
 
-  context 'POST /albums' do
-    it ' should create a new album' do 
-      response = post(
-        '/albums',
-        title: 'OK Computer',
-        release_year: '1997',
-        artist_id: '1')
-
-      expect(response.status).to eq(200)
-      expect(response.body).to eq('')
-
-      response = get('/albums')
-
-      expect(response.body).to include('OK Computer')
+  describe Application do
+    after(:each) do 
+      reset_albums_table
     end
-  end
 
-  context "GET /artists" do
-    it 'returns 200 OK' do
-      response = get('/artists')
-      expected_response = 'Pixies, ABBA, Taylor Swift, Nina Simone, Kiasmos'
+    context 'GET /albums' do 
+      it 'should return the list of albums' do
+        response = get('/albums')
+        expected_response = 'Doolittle, Surfer Rosa, Waterloo, Super Trouper, Bossanova, Lover, Folklore, I Put a Spell on You, Baltimore, Here Comes the Sun, Fodder on My Wings, Ring Ring'
 
-      expect(response.status).to eq(200)
-      expect(response.body).to eq(expected_response)
+        expect(response.status).to eq(200)
+        expect(response.body).to eq(expected_response)
+      end
     end
-  end
 
-  context "POST /artists" do
-    it 'returns 200 OK' do
-     
-      response = post('/artists',
-      name: 'Wild Nothing',
-      genre: 'Indie')
+    context 'POST /albums' do
+      it ' should create a new album' do 
+        response = post(
+          '/albums',
+          title: 'OK Computer',
+          release_year: '1997',
+          artist_id: '1')
 
-      expect(response.status).to eq(200)
-      expect(response.body).to eq('')
+        expect(response.status).to eq(200)
+        expect(response.body).to eq('')
 
-      response = get('/artists')
-      expect(response.body).to include('Wild Nothing')
+        response = get('/albums')
+
+        expect(response.body).to include('OK Computer')
+      end
     end
-  end
 
-  context "GET /albums/:id" do
-    it 'returns 200 OK and relevant album information' do
-      response = get("/albums/2")
+    context "GET /artists" do
+      it 'returns 200 OK' do
+        response = get('/artists')
+        expected_response = 'Pixies, ABBA, Taylor Swift, Nina Simone, Kiasmos'
 
-      expect(response.status).to eq(200)
-      expect(response.body).to include("<h1> Surfer Rosa </h1>", "Artist: Pixies")
+        expect(response.status).to eq(200)
+        expect(response.body).to eq(expected_response)
+      end
+    end
+
+    context "POST /artists" do
+      it 'returns 200 OK' do
+      
+        response = post('/artists',
+        name: 'Wild Nothing',
+        genre: 'Indie')
+
+        expect(response.status).to eq(200)
+        expect(response.body).to eq('')
+
+        response = get('/artists')
+        expect(response.body).to include('Wild Nothing')
+      end
+    end
+
+    context "GET /albums/:id" do
+      it 'returns 200 OK and relevant album information' do
+        response = get("/albums/2")
+
+        expect(response.status).to eq(200)
+        expect(response.body).to include("<h1> Surfer Rosa </h1>", "Artist: Pixies")
+      end
     end
   end
 end
