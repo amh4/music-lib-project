@@ -9,11 +9,12 @@ describe Application do
   # We need to declare the `app` value by instantiating the Application
   # class so our tests work.
   let(:app) { Application.new }
+  
 
   context 'GET /albums' do 
     it 'should return the list of albums' do
       response = get('/albums')
-      expected_response = 'Surfer Rosa, Waterloo, Super Trouper, Bossanova, Lover, Folklore, I Put a Spell on You, Baltimore, Here Comes the Sun, Fodder on My Wings, Ring Ring'
+      expected_response = 'Doolittle, Surfer Rosa, Waterloo, Super Trouper, Bossanova, Lover, Folklore, I Put a Spell on You, Baltimore, Here Comes the Sun, Fodder on My Wings, Ring Ring'
 
       expect(response.status).to eq(200)
       expect(response.body).to eq(expected_response)
@@ -59,7 +60,15 @@ describe Application do
 
       response = get('/artists')
       expect(response.body).to include('Wild Nothing')
+    end
+  end
 
+  context "GET /albums/:id" do
+    it 'returns 200 OK and relevant album information' do
+      response = get("/albums/2")
+
+      expect(response.status).to eq(200)
+      expect(response.body).to include("<h1> Surfer Rosa </h1>", "Artist: Pixies")
     end
   end
 end

@@ -8,7 +8,7 @@ def reset_albums_table
 end
 
 describe AlbumRepository do
-  before(:each) do 
+  after(:each) do 
     reset_albums_table
   end
 
@@ -17,7 +17,7 @@ describe AlbumRepository do
 
     albums = repo.all
     
-    expect(albums.length).to eq(12)
+    expect(albums.length).to eq(13)
     expect(albums.first.title).to eq('Doolittle')
     expect(albums.first.artist_id).to eq(1)
   end
