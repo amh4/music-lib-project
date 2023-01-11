@@ -3,11 +3,7 @@ require "rack/test"
 require_relative '../../app'
 
 describe Application do
-  # This is so we can use rack-test helper methods.
   include Rack::Test::Methods
-
-  # We need to declare the `app` value by instantiating the Application
-  # class so our tests work.
   let(:app) { Application.new }
   
   def reset_tables
@@ -17,85 +13,106 @@ describe Application do
     connection.exec(albums_seed_sql)
     connection.exec(artists_seed_sql)
   end
+  
+  after(:each) do 
+    reset_tables
+  end
 
-  describe Application do
-    after(:each) do 
-      reset_tables
-    end
-
-    context 'GET /albums' do 
-      it 'should return the list of albums each in its own div' do
-        album_repo = AlbumRepository.new
-        albums = album_repo.all
-        response = get('/albums')
-        albums.each do |record|
-          expect(response.body).to include("Title: #{record.title}", "Release Year: #{record.release_year}")
-        end
-        expect(response.status).to eq(200)
+  context 'GET /albums' do 
+    it 'should return the list of albums each in its own div' do
+      album_repo = AlbumRepository.new
+      albums = album_repo.all
+      response = get('/albums')
+      albums.each do |record|
+        expect(response.body).to include("Title: #{record.title}", "Release Year: #{record.release_year}")
       end
+      expect(response.status).to eq(200)
     end
+  end
 
-    context 'POST /albums' do
-      it ' should create a new album' do 
-        response = post(
-          '/albums',
-          title: 'OK Computer',
-          release_year: '1997',
-          artist_id: '1')
+  context 'POST /albums' do
+    it 'should create a new album and return confirmation page' do 
+      response = post(
+        '/albums',
+        title: 'OK Computer',
+        release_year: '1997',
+        artist_id: '1')
 
-        expect(response.status).to eq(200)
-        expect(response.body).to eq('')
-
-        response = get('/albums')
-
-        expect(response.body).to include('OK Computer')
-      end
+      expect(response.status).to eq(200)
+      expect(response.body).to include('<h1>You saved: OK Computer</h1>')
     end
+  end
 
-    context "GET /artists" do
-      it 'returns 200 OK' do
-        response = get('/artists')
-        artists_repo = ArtistRepository.new
-        artists_repo.all.each do |artist|
-          expect(response.body).to include("Name: #{artist.name}", "Genre: #{artist.genre}")
-          expect(response.body).to include("<a href=\"/artists/#{artist.id}\">Go to the artist page</a>")
-        end
-        expect(response.status).to eq(200)
+  context 'POST /albums' do
+    it 'should create a new album with a different title and return confirmation page' do 
+      response = post(
+        '/albums',
+        title: 'Stadium Arcadium',
+        release_year: '2005',
+        artist_id: '1')
 
-      end
+      expect(response.status).to eq(200)
+      expect(response.body).to include('<h1>You saved: Stadium Arcadium</h1>')
     end
+  end
 
-    context "POST /artists" do
-      it 'returns 200 OK' do
-      
-        response = post('/artists',
-        name: 'Wild Nothing',
-        genre: 'Indie')
-
-        expect(response.status).to eq(200)
-        expect(response.body).to eq('')
-
-        response = get('/artists')
-        expect(response.body).to include('Wild Nothing')
+  context "GET /artists" do
+    it 'returns 200 OK' do
+      response = get('/artists')
+      artists_repo = ArtistRepository.new
+      artists_repo.all.each do |artist|
+        expect(response.body).to include("Name: #{artist.name}", "Genre: #{artist.genre}")
+        expect(response.body).to include("<a href=\"/artists/#{artist.id}\">Go to the artist page</a>")
       end
+      expect(response.status).to eq(200)
     end
+  end
 
-    context "GET /albums/:id" do
-      it 'returns 200 OK and relevant album information' do
-        response = get("/albums/2")
-
-        expect(response.status).to eq(200)
-        expect(response.body).to include("<h1> Surfer Rosa </h1>", "Artist: Pixies")
-      end
+  context "POST /artists" do
+    it 'returns a html page confirming artist added' do
+      response = post('/artists',
+      name: 'Wild Nothing',
+      genre: 'Indie')
+      expect(response.status).to eq(200)
+      expect(response.body).to include('<h1>You saved: Wild Nothing</h1>')
     end
+  end
 
-    context "GET /artists/:id" do
-      it 'returns 200 OK and relevant artists information' do
-        response = get("/artists/2")
+  context "GET /albums/:id" do
+    it 'returns 200 OK and relevant album information' do
+      response = get("/albums/2")
 
-        expect(response.status).to eq(200)
-        expect(response.body).to include("Name: ABBA", "Genre: Pop")
-      end
+      expect(response.status).to eq(200)
+      expect(response.body).to include("<h1> Surfer Rosa </h1>", "Artist: Pixies")
+    end
+  end
+
+  context "GET /artists/:id" do
+    it 'returns 200 OK and relevant artists information' do
+      response = get("/artists/2")
+
+      expect(response.status).to eq(200)
+      expect(response.body).to include("Name: ABBA", "Genre: Pop")
+    end
+  end
+
+  context "GET /albums/new" do
+    it 'returns a html form to create a new album' do
+      response = get('/albums/new')
+      expect(response.status).to eq(200)
+      expect(response.body).to include('<form method="POST" action="/albums"')
+      expect(response.body).to include('<input type="text" name="title" />')
+      expect(response.body).to include('<input type="text" name="release_year" />')
+    end
+  end
+
+  context "GET /artists/new" do
+    it 'returns a html form to create a new artist' do
+      response = get('/artists/new')
+      expect(response.status).to eq(200)
+      expect(response.body).to include('<form method="POST" action="/artists"')
+      expect(response.body).to include('<input type="text" name="name" />')
+      expect(response.body).to include('<input type="text" name="genre" />')
     end
   end
 end
