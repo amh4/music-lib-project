@@ -19,3 +19,5 @@ gem "webrick", "~> 1.7"
 gem "sinatra-contrib", "~> 2.2"
 
 gem "rackup", "~> 0.1.0"
+
+gem 'render', '~> 0.1.2'
